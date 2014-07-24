@@ -7,6 +7,8 @@ public class Deployable {
     private String artifactId;
     private String version;
     private String strategy;
+    private String kBaseName;
+    private String kSessionName;
 
     public String getGroupId() {
         return groupId;
@@ -20,7 +22,12 @@ public class Deployable {
     public String getStrategy() {
         return strategy;
     }
-
+    public String getkBaseName() {
+      return kBaseName;
+    }
+    public String getkSessionName() {
+      return kSessionName;
+    }
     public Deployable(String groupId, String artifactId, String version, String strategy) {
         this.groupId=groupId;
         this.artifactId=artifactId;

@@ -31,21 +31,16 @@ public class Jbpm6RestClient {
     this.password=password;
   }
   
-  public void actionKJar(GAV gav, String strategy, String action) throws HttpException{
-    String url=serverUri+"rest/deployment/"+gav.getGroupId()+":"+gav.getArtifactId()+":"+gav.getVersion()+"/action?strategy="+strategy;
-    System.out.println("deployKJar(): POST "+url);
+  public void actionKJar(GAV gav, String strategy, String kBaseName, String kSessionName, String action) throws HttpException{
+    String url=serverUri+"rest/deployment/"+gav.getGroupId()+":"+gav.getArtifactId()+":"+gav.getVersion()+(kBaseName!=null?":"+kBaseName:"")+(kSessionName!=null?":"+kSessionName:"")+"/"+action+"?strategy="+strategy;
+    System.out.println("[KIE-DEPLOYER]    "+action+" request  -> POST "+url);
     Response response=given().redirects().follow(true).auth().preemptive().basic(username,password).when().post(url);
+    String responseString=response.asString();
+    System.out.println("[KIE-DEPLOYER]    "+action+" response -> "+responseString);
+    
     if (response.getStatusCode()!=202)
-      throw new HttpException("Failed to POST to "+url+" - http status line = "+ response.getStatusLine() +"; response content = "+ response.asString());
+      throw new HttpException("[KIE-DEPLOYER]    ERROR: Failed to POST to "+url+" - http status line = "+ response.getStatusLine() +"; response content:\n "+ responseString);
   }
-  
-//  public void undeployKJar(GAV gav, String strategy) throws HttpException{
-//    String url=serverUri+"rest/deployment/"+gav.getGroupId()+":"+gav.getArtifactId()+":"+gav.getVersion()+"/undeploy?strategy="+strategy;
-//    System.out.println("undeployKJar(): POST "+url);
-//    Response response=given().redirects().follow(true).auth().preemptive().basic(username,password).when().post(url);
-//    if (response.getStatusCode()!=200 && response.getStatusCode()!=202)
-//      throw new HttpException("Failed to POST to "+url+" - http status line = "+ response.getStatusLine() +"; response content = "+ response.asString());
-//  }
   
   public boolean deploymentExists(GAV gav, String strategy) throws HttpException{
     return null!=getDeployment(gav, strategy);
@@ -65,12 +60,16 @@ public class Jbpm6RestClient {
   public List<DeploymentUnit> getDeployments() throws HttpException {
     try {
       String url=serverUri+"rest/deployment";
-      System.out.println("getDeployments(): GET "+url);
+      
+//      System.out.println("[KIE-DEPLOYER]    getDeployments -> GET "+url);
+      System.out.print(".");
+      
       Response response=given().redirects().follow(true).auth().preemptive().basic(username,password).when().get(url);
       if (response.getStatusCode()!=200 && response.getStatusCode()!=202)
         throw new HttpException("Failed to GET to "+url+" - http status line = "+ response.getStatusLine() +"; response content = "+ response.asString());
 
       String responseString=response.asString();
+//      System.out.println("[KIE-DEPLOYER]    getDeployments() response = "+responseString);
       Document doc=DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(responseString.getBytes()));
       XPath xpath=XPathFactory.newInstance().newXPath();
       List<DeploymentUnit> result=new ArrayList<DeploymentUnit>();

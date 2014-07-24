@@ -30,7 +30,8 @@ public class ProcessDeployer6Mojo extends AbstractMojo implements Configuration 
   private String timeoutInSeconds="60";
   /** @parameter property="deployables" @since 1.0.0 **/
   private Deployable[] deployables;
-  private String action="deploy";
+//  /** @parameter property="action" @since 1.0.0 **/
+//  private String action="deploy";
   
   public String getServerUri() { return serverUri; }
   public String getUsername() { return username; }
@@ -47,12 +48,11 @@ public class ProcessDeployer6Mojo extends AbstractMojo implements Configuration 
     m.debug="true";
     m.immediate="false";
     m.serverUri="http://localhost:8080/business-central/";
-//  m.username="mat";
-//  m.password="adminmonk3y!";
     m.username="admin";
     m.password="admin";
-    m.deployables=new Deployable[]{new Deployable("dl-customer-order-service","dl-customer-order-service","1.1","PER_PROCESS_INSTANCE")};
-    m.action="undeploy";
+    //m.deployables=new Deployable[]{new Deployable("dl-customer-order-service","dl-customer-order-service","1.1","PER_PROCESS_INSTANCE")};
+    m.deployables=new Deployable[]{new Deployable("org.jboss.quickstarts.brms6","business-rules","6.0.0-SNAPSHOT","PER_PROCESS_INSTANCE")};
+//    m.action="deploy";
     m.execute();
   }
   
@@ -72,22 +72,22 @@ public class ProcessDeployer6Mojo extends AbstractMojo implements Configuration 
     checkParameters();
 
     if (!isImmediate()) {
-      if (isDebug()) System.out.println("polling mode enabled\nHas Guvnor started?");
+      if (isDebug()) System.out.println("[KIE-DEPLOYER]    polling mode enabled");
       Runnable runnable=new Runnable() {
         @Override public void run() {
-          if (isDebug()) System.out.println("started thread to upload...");
+          if (isDebug()) System.out.println("[KIE-DEPLOYER]    started thread to upload...");
           Wait.For(getTimeoutInSeconds(),5,new ToHappen() {
         	@Override public boolean hasHappened() {
             try {
               int statusCode=RestAssured.given().auth().preemptive().basic(getUsername(),getPassword()).when().get(getServerUri()).getStatusCode();
           	  if (statusCode!=200)
-          		  throw new RuntimeException("Guvnor down... - returned HTTP "+statusCode);
-          	  if (isDebug()) System.out.println("yes! Guvnor is up!");
+          		  throw new RuntimeException("[KIE-DEPLOYER]    Guvnor down... - returned HTTP "+statusCode);
+          	  if (isDebug()) System.out.println("[KIE-DEPLOYER]    Guvnor is up!");
               uploadKJar();
               return true;
             } catch (Exception e) {
 //              if (isDebug()) System.out.print(".");
-              System.out.println(e.getMessage());
+              System.out.println("[KIE-DEPLOYER] WARNING: "+e.getMessage());
               return false;
             }
         	}});
@@ -102,32 +102,35 @@ public class ProcessDeployer6Mojo extends AbstractMojo implements Configuration 
 
   protected void uploadKJar() throws MojoExecutionException, MojoFailureException {
     try {
-      if (isDebug()) System.out.println("uploadKJar():     attempting upload...");
+      if (isDebug()) System.out.println("[KIE-DEPLOYER]    attempting deployment...");
       
       for(final Deployable d:getDeployables()){
         final GAV gav=new GAV(d.getGroupId(), d.getArtifactId(), d.getVersion());
         if (!client.deploymentExists(gav, d.getStrategy())){
-      	if (isDebug()) System.out.println("uploadKJar():     Deployment doesnt exist on BPM Server, so deploying GAV now ["+gav+"]");
-          client.actionKJar(gav, d.getStrategy(), action);
-          
-          boolean success=Wait.For(10,new ToHappen() {
+      	if (isDebug()) System.out.println("[KIE-DEPLOYER]    Deployment doesnt exist on BPM Server. Deploying GAV now ["+gav+"]");
+      	  String kBaseName=d.getkBaseName();
+          String kSessionName=d.getkSessionName();
+          client.actionKJar(gav, d.getStrategy(), kBaseName, kSessionName, "deploy");
+          System.out.print("[KIE-DEPLOYER]    checkingForDeployment:");
+          boolean success=Wait.For(30,1,new ToHappen() {
             @Override public boolean hasHappened() {
               try{
                 return client.deploymentExists(gav, d.getStrategy());
               }catch(HttpException sink){}
               return false;
           }});
+          System.out.println();
           
           if (success){
-            if (isDebug()) System.out.println("uploadKJar():     Confirmed GAV is deployed on BPM Server ["+gav+"; strategy="+d.getStrategy()+"]");
+            if (isDebug()) System.out.println("[KIE-DEPLOYER]    Confirmed GAV is deployed on BPM Server ["+gav+"; strategy="+d.getStrategy()+"]");
           }else
-            if (isDebug()) System.err.println("uploadKJar():     After deployment GAV was NOT found on BPM Server! ["+gav+"; strategy="+d.getStrategy()+"]");
+            if (isDebug()) System.err.println("[KIE-DEPLOYER]    After deployment GAV was NOT found on BPM Server! ["+gav+"; strategy="+d.getStrategy()+"]");
         }else
-          if (isDebug()) System.out.println("uploadKJar():     Deployment already exists ["+gav+"; strategy="+d.getStrategy()+"]");
+          if (isDebug()) System.out.println("[KIE-DEPLOYER]    Deployment already exists ["+gav+"; strategy="+d.getStrategy()+"]");
       }
     } catch (Exception e) {
       e.printStackTrace();
-      throw new MojoExecutionException("Unable to upload rules", e);
+      throw new MojoExecutionException("[KIE-DEPLOYER] Unable to upload rules", e);
     }
   }
 
