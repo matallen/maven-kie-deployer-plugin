@@ -112,7 +112,7 @@ public class ProcessDeployer6Mojo extends AbstractMojo implements Configuration 
           String kSessionName=d.getkSessionName();
           client.actionKJar(gav, d.getStrategy(), kBaseName, kSessionName, "deploy");
           System.out.print("[KIE-DEPLOYER]    checkingForDeployment:");
-          boolean success=Wait.For(30,1,new ToHappen() {
+          boolean success=Wait.For(getTimeoutInSeconds(),1,new ToHappen() {
             @Override public boolean hasHappened() {
               try{
                 return client.deploymentExists(gav, d.getStrategy());
