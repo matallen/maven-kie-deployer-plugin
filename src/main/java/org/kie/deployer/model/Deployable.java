@@ -1,7 +1,5 @@
 package org.kie.deployer.model;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-
 public class Deployable {
     private String groupId;
     private String artifactId;
@@ -35,8 +33,10 @@ public class Deployable {
         this.strategy=strategy;
     }
     public Deployable(){}
-
+    
+    @Override
     public String toString() {
-        return ReflectionToStringBuilder.toString(this);
+      return "Deployable [groupId="+groupId+", artifactId="+artifactId+", version="+version+", strategy="+strategy+", kBaseName="+kBaseName+", kSessionName="
+          +kSessionName+"]";
     }
 }

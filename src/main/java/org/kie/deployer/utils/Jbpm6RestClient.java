@@ -12,7 +12,8 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
-import org.apache.http.HttpException;
+
+import org.kie.deployer.HttpException;
 import org.kie.deployer.model.DeploymentUnit;
 import org.kie.deployer.model.GAV;
 import org.w3c.dom.Document;

@@ -1,10 +1,8 @@
 package org.kie.deployer;
 
-import org.apache.http.HttpException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
 import org.kie.deployer.model.Deployable;
 import org.kie.deployer.model.GAV;
 import org.kie.deployer.utils.Jbpm6RestClient;

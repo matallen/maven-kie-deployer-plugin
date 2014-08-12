@@ -43,8 +43,9 @@ public class DeploymentUnit {
   public String getStatus() {
     return status;
   }
-  public String toString(){
-    return ReflectionToStringBuilder.toString(this);
+  @Override
+  public String toString() {
+    return "DeploymentUnit [groupId="+groupId+", artifactId="+artifactId+", version="+version+", strategy="+strategy+", status="+status+"]";
   }
   
 }
