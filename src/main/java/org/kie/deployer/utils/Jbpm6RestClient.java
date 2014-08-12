@@ -1,4 +1,4 @@
-package org.jboss.kie.jbpm.utils;
+package org.kie.deployer.utils;
 
 import static com.jayway.restassured.RestAssured.given;
 import static javax.xml.xpath.XPathConstants.NODE;
@@ -13,8 +13,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 import org.apache.http.HttpException;
-import org.jboss.kie.jbpm.model.DeploymentUnit;
-import org.jboss.kie.jbpm.model.GAV;
+import org.kie.deployer.model.DeploymentUnit;
+import org.kie.deployer.model.GAV;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import com.jayway.restassured.response.Response;
@@ -23,12 +23,14 @@ public class Jbpm6RestClient {
   private String serverUri;
   private String username;
   private String password;
+  private boolean debug;
   private final Map<GAV, DeploymentUnit> deploymentsFound=new HashMap<GAV, DeploymentUnit>();
   
-  public Jbpm6RestClient(String serverUri, String username, String password){
+  public Jbpm6RestClient(String serverUri, String username, String password, boolean debug){
     this.serverUri=serverUri;
     this.username=username;
     this.password=password;
+    this.debug=debug;
   }
   
   public void actionKJar(GAV gav, String strategy, String kBaseName, String kSessionName, String action) throws HttpException{
@@ -61,7 +63,8 @@ public class Jbpm6RestClient {
     try {
       String url=serverUri+"rest/deployment";
       
-//      System.out.println("[KIE-DEPLOYER]    getDeployments -> GET "+url);
+      if (debug)
+        System.out.println("[KIE-DEPLOYER]    getDeployments -> GET "+url);
       System.out.print(".");
       
       Response response=given().redirects().follow(true).auth().preemptive().basic(username,password).when().get(url);
@@ -69,7 +72,8 @@ public class Jbpm6RestClient {
         throw new HttpException("Failed to GET to "+url+" - http status line = "+ response.getStatusLine() +"; response content = "+ response.asString());
 
       String responseString=response.asString();
-//      System.out.println("[KIE-DEPLOYER]    getDeployments() response = "+responseString);
+      if (debug)
+        System.out.println("[KIE-DEPLOYER]    getDeployments() response = "+responseString);
       Document doc=DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(responseString.getBytes()));
       XPath xpath=XPathFactory.newInstance().newXPath();
       List<DeploymentUnit> result=new ArrayList<DeploymentUnit>();

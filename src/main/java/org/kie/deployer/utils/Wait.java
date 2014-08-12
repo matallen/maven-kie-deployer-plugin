@@ -1,4 +1,4 @@
-package org.jboss.kie.jbpm.utils;
+package org.kie.deployer.utils;
 
 public class Wait{
   public static boolean For(int timeoutInSeconds, int intervalInSeconds, ToHappen toHappen) {

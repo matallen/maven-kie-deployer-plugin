@@ -1,6 +1,6 @@
-package org.jboss.kie.jbpm;
+package org.kie.deployer;
 
-import org.jboss.kie.jbpm.model.Deployable;
+import org.kie.deployer.model.Deployable;
 
 
 public interface Configuration {

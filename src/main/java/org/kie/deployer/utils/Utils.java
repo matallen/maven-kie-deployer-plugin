@@ -1,9 +1,10 @@
-package org.jboss.kie.jbpm.utils;
+package org.kie.deployer.utils;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-import org.jboss.kie.jbpm.ProcessDeployer6Mojo;
+
+import org.kie.deployer.ProcessDeployer6Mojo;
 
 public class Utils {
 

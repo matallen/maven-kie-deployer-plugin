@@ -1,4 +1,4 @@
-package org.jboss.kie.jbpm.utils;
+package org.kie.deployer.utils;
 
 public interface ToHappen {
   public boolean hasHappened();

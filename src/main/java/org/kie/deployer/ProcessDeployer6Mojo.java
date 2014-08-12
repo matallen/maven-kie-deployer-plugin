@@ -1,15 +1,17 @@
-package org.jboss.kie.jbpm;
+package org.kie.deployer;
 
 import org.apache.http.HttpException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.jboss.kie.jbpm.model.Deployable;
-import org.jboss.kie.jbpm.model.GAV;
-import org.jboss.kie.jbpm.utils.Jbpm6RestClient;
-import org.jboss.kie.jbpm.utils.ToHappen;
-import org.jboss.kie.jbpm.utils.Utils;
-import org.jboss.kie.jbpm.utils.Wait;
+import org.apache.maven.plugin.logging.Log;
+import org.kie.deployer.model.Deployable;
+import org.kie.deployer.model.GAV;
+import org.kie.deployer.utils.Jbpm6RestClient;
+import org.kie.deployer.utils.ToHappen;
+import org.kie.deployer.utils.Utils;
+import org.kie.deployer.utils.Wait;
+
 import com.jayway.restassured.RestAssured;
 
 /**
@@ -43,17 +45,19 @@ public class ProcessDeployer6Mojo extends AbstractMojo implements Configuration 
   
   private Jbpm6RestClient client;
   
-  public static void main(String[] asd) throws Exception{
+  public static ProcessDeployer6Mojo testInstance(String uri){
     ProcessDeployer6Mojo m=new ProcessDeployer6Mojo();
     m.debug="true";
     m.immediate="false";
-    m.serverUri="http://localhost:8080/business-central/";
+    m.serverUri=uri;
     m.username="admin";
     m.password="admin";
-    //m.deployables=new Deployable[]{new Deployable("dl-customer-order-service","dl-customer-order-service","1.1","PER_PROCESS_INSTANCE")};
     m.deployables=new Deployable[]{new Deployable("org.jboss.quickstarts.brms6","business-rules","6.0.0-SNAPSHOT","PER_PROCESS_INSTANCE")};
-//    m.action="deploy";
-    m.execute();
+    return m;
+  }
+  
+  public static void main(String[] asd) throws Exception{
+    testInstance("http://localhost:8080/business-central/").execute();
   }
   
   private void checkParameters(){
@@ -62,7 +66,7 @@ public class ProcessDeployer6Mojo extends AbstractMojo implements Configuration 
     	if (d.getStrategy()!=null && !d.getStrategy().matches("^(SINGLETON|PER_REQUEST|PER_PROCESS_INSTANCE)$"))
     		throw new RuntimeException("deployable strategy must be SINGLETON, PER_REQUEST or PER_PROCESS_INSTANCE. Found "+d.getStrategy()+" for "+d.getGroupId()+":"+d.getArtifactId()+"");
     }
-    if (null==client) client=new Jbpm6RestClient(getServerUri().endsWith("/")?getServerUri():getServerUri()+"/",username,password);
+    if (null==client) client=new Jbpm6RestClient(getServerUri().endsWith("/")?getServerUri():getServerUri()+"/",username,password, debug!=null&&debug.equalsIgnoreCase("true"));
     
     if (isDebug()) System.out.println(Utils.printPrivateVariables("*** DEBUG PARAMETERS *** ", this));
   }
@@ -123,15 +127,26 @@ public class ProcessDeployer6Mojo extends AbstractMojo implements Configuration 
           
           if (success){
             if (isDebug()) System.out.println("[KIE-DEPLOYER]    Confirmed GAV is deployed on BPM Server ["+gav+"; strategy="+d.getStrategy()+"]");
-          }else
+            resultStatus=0;
+          }else{
             if (isDebug()) System.err.println("[KIE-DEPLOYER]    After deployment GAV was NOT found on BPM Server! ["+gav+"; strategy="+d.getStrategy()+"]");
-        }else
+            resultStatus=1;
+          }
+        }else{
           if (isDebug()) System.out.println("[KIE-DEPLOYER]    Deployment already exists ["+gav+"; strategy="+d.getStrategy()+"]");
+          resultStatus=2;
+        }
       }
     } catch (Exception e) {
       e.printStackTrace();
+      resultStatus=3;
       throw new MojoExecutionException("[KIE-DEPLOYER] Unable to upload rules", e);
     }
+  }
+  
+  private int resultStatus=-1;
+  public int getResultStatus(){
+    return resultStatus;
   }
 
 }

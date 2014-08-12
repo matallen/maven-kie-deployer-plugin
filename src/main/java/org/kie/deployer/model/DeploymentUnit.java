@@ -1,4 +1,4 @@
-package org.jboss.kie.jbpm.model;
+package org.kie.deployer.model;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
