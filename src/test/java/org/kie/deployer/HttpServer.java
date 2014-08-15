@@ -41,6 +41,7 @@ public class HttpServer {
   
   public void start(){
     try{
+      System.out.println("Starting HTTP Server on port "+port);
       final ServerSocket server=new ServerSocket(port);
       acceptorThread=new Thread(new Runnable() {
         @Override public void run() {

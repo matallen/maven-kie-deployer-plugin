@@ -1,11 +1,14 @@
 package org.kie.deployer;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 public class DeployerTest {
-  private static final int port=16080;
+  private final int port=System.getProperty("port")!=null?Integer.parseInt(System.getProperty("port")):getAvailablePortStartingAt(8080);
   private static final String deployJobSubmittedReply="<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><deployment-job-result><operation>DEPLOY</operation><deploymentUnit><groupId>org.jboss.quickstarts.brms6</groupId><artifactId>business-rules</artifactId><version>6.0.0-SNAPSHOT</version><strategy>PER_PROCESS_INSTANCE</strategy><status>DEPLOYING</status></deploymentUnit><success>true</success><explanation>Deployment (deploy) job submitted successfully.</explanation></deployment-job-result>";
   private static final String emptyDeploymentsReply="<deployment-unit-list></deployment-unit-list>";
   private static final String deployedDeploymentsReply=
@@ -24,6 +27,21 @@ public class DeployerTest {
   boolean isAliveReply=false;
   int deploymentsReplyCount=0;
   boolean deploymentSubmittedReply=false;
+  
+  private int getAvailablePortStartingAt(int start){
+    boolean portTaken=true;
+    int port=start;
+    while (portTaken){
+      try {
+        new ServerSocket(port++);
+        portTaken=false;
+      } catch (IOException e) {
+        System.out.println("Port already bound: "+(port-1));
+        portTaken=true;
+      }
+    }
+    return port-1;
+  }
   
   @Before
   public void reset(){
@@ -60,7 +78,7 @@ public class DeployerTest {
     }});
     server.start();
     
-    ProcessDeployer6Mojo mojo=ProcessDeployer6Mojo.testInstance("http://localhost:16080/business-central/");
+    ProcessDeployer6Mojo mojo=ProcessDeployer6Mojo.testInstance("http://localhost:"+port+"/business-central/");
     mojo.execute();
     
     Thread.sleep(3000l); // wait for the asynchronous deployer to do its work
