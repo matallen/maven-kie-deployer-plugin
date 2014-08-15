@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class DeployerTest {
-  private final int port=System.getProperty("port")!=null?Integer.parseInt(System.getProperty("port")):getAvailablePortStartingAt(8080);
+  private final int port=System.getProperty("port")!=null?Integer.parseInt(System.getProperty("port")):getAvailablePortStartingAt(16080);
   private static final String deployJobSubmittedReply="<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><deployment-job-result><operation>DEPLOY</operation><deploymentUnit><groupId>org.jboss.quickstarts.brms6</groupId><artifactId>business-rules</artifactId><version>6.0.0-SNAPSHOT</version><strategy>PER_PROCESS_INSTANCE</strategy><status>DEPLOYING</status></deploymentUnit><success>true</success><explanation>Deployment (deploy) job submitted successfully.</explanation></deployment-job-result>";
   private static final String emptyDeploymentsReply="<deployment-unit-list></deployment-unit-list>";
   private static final String deployedDeploymentsReply=
