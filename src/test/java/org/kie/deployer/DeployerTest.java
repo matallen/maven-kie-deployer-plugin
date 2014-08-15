@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class DeployerTest {
-  private final int port=System.getProperty("port")!=null?Integer.parseInt(System.getProperty("port")):getAvailablePortStartingAt(16080);
+  private final int port=getAvailablePortStartingAt(System.getProperty("port")!=null?Integer.parseInt(System.getProperty("port")):16080);
   private static final String deployJobSubmittedReply="<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><deployment-job-result><operation>DEPLOY</operation><deploymentUnit><groupId>org.jboss.quickstarts.brms6</groupId><artifactId>business-rules</artifactId><version>6.0.0-SNAPSHOT</version><strategy>PER_PROCESS_INSTANCE</strategy><status>DEPLOYING</status></deploymentUnit><success>true</success><explanation>Deployment (deploy) job submitted successfully.</explanation></deployment-job-result>";
   private static final String emptyDeploymentsReply="<deployment-unit-list></deployment-unit-list>";
   private static final String deployedDeploymentsReply=
@@ -29,16 +29,20 @@ public class DeployerTest {
   boolean deploymentSubmittedReply=false;
   
   private int getAvailablePortStartingAt(int start){
+    System.out.println("Checking for available ports");
     boolean portTaken=true;
     int port=start;
     while (portTaken){
       try {
-        new ServerSocket(port++);
+        ServerSocket serverSocket=new ServerSocket(port++);
+        serverSocket.close();
         System.out.println("Port available: "+(port-1));
         portTaken=false;
       } catch (IOException e) {
         System.out.println("Port already bound: "+(port-1));
         portTaken=true;
+      } catch (Exception e) {
+        System.out.println("XXXXX");
       }
     }
     return port-1;
@@ -53,6 +57,7 @@ public class DeployerTest {
   
   @Test
   public void test() throws Exception {
+    
     
     HttpServer server=HttpServer.create(port);
     server.setHttpHandler(new HttpHandler() {

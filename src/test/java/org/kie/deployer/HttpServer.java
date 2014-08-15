@@ -1,6 +1,7 @@
 package org.kie.deployer;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
@@ -42,7 +43,12 @@ public class HttpServer {
   public void start(){
     try{
       System.out.println("Starting HTTP Server on port "+port);
-      final ServerSocket server=new ServerSocket(port);
+      final ServerSocket server;
+      try{
+        server=new ServerSocket(port);
+      }catch(BindException e){
+        throw new BindException(e.getMessage()+": "+port); // enriching the exception with the port it is unable to bind
+      }
       acceptorThread=new Thread(new Runnable() {
         @Override public void run() {
           try{
