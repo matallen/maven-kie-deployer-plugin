@@ -57,14 +57,12 @@ public class DeployerTest {
   
   @Test
   public void test() throws Exception {
-    
-    
     HttpServer server=HttpServer.create(port);
     server.setHttpHandler(new HttpHandler() {
       @Override public void handle(HttpExchange httpExchange) {
         try{
           String request=httpExchange.asString();
-          System.out.println(request);
+          System.err.println("REQUEST:\n"+request);
           
           if (httpExchange.getMethod().equals("GET") && httpExchange.getUri().matches("^/business-central/$")){
             httpExchange.replyWith(200, "anything");
@@ -87,7 +85,11 @@ public class DeployerTest {
     ProcessDeployer6Mojo mojo=ProcessDeployer6Mojo.testInstance("http://127.0.0.1:"+port+"/business-central/");
     mojo.execute();
     
-    Thread.sleep(3000l); // wait for the asynchronous deployer to do its work
+    // deployer is asynchronous so we have to wait for it to do its work
+    long timeout=System.currentTimeMillis()+(System.getProperty("timeout")!=null?Long.parseLong(System.getProperty("timeout")):10000);
+    while(mojo.getResultStatus()<0 && System.currentTimeMillis()<timeout){
+      Thread.sleep(1000l);
+    }
     
     Assert.assertEquals(0, mojo.getResultStatus());
     Assert.assertTrue(isAliveReply);
