@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.kie.maven.plugins</groupId>
 	<artifactId>maven-kie-deployer-plugin</artifactId>
-	<version>1.0.4</version>
+	<version>1.0.2-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
 	<name>${project.groupId}.${project.artifactId}</name>
 	<description>Maven plugin to deploy kjars to a running instance ofJBoss BPM Suite 6 for use in a CI environment</description>
