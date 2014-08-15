@@ -34,6 +34,7 @@ public class DeployerTest {
     while (portTaken){
       try {
         new ServerSocket(port++);
+        System.out.println("Port available: "+(port-1));
         portTaken=false;
       } catch (IOException e) {
         System.out.println("Port already bound: "+(port-1));
@@ -78,7 +79,7 @@ public class DeployerTest {
     }});
     server.start();
     
-    ProcessDeployer6Mojo mojo=ProcessDeployer6Mojo.testInstance("http://localhost:"+port+"/business-central/");
+    ProcessDeployer6Mojo mojo=ProcessDeployer6Mojo.testInstance("http://127.0.0.1:"+port+"/business-central/");
     mojo.execute();
     
     Thread.sleep(3000l); // wait for the asynchronous deployer to do its work
