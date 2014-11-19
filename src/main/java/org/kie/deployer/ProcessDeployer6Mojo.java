@@ -76,20 +76,25 @@ public class ProcessDeployer6Mojo extends AbstractMojo implements Configuration 
     if (!isImmediate()) {
       if (isDebug()) System.out.println("[KIE-DEPLOYER]    polling mode enabled");
       Runnable runnable=new Runnable() {
+        int count=0;
         @Override public void run() {
           if (isDebug()) System.out.println("[KIE-DEPLOYER]    started thread to upload...");
           Wait.For(getTimeoutInSeconds(),5,new ToHappen() {
         	@Override public boolean hasHappened() {
             try {
+//              System.out.println("HTTP GET ->");
               int statusCode=RestAssured.given().auth().preemptive().basic(getUsername(),getPassword()).when().get(getServerUri()).getStatusCode();
-          	  if (statusCode!=200)
+//          	  System.out.println("HTTP RESP -> statusCode = "+statusCode);
+              if (statusCode!=200)
           		  throw new RuntimeException("[KIE-DEPLOYER]    Guvnor down... - returned HTTP "+statusCode);
           	  if (isDebug()) System.out.println("[KIE-DEPLOYER]    Guvnor is up!");
               uploadKJar();
               return true;
             } catch (Exception e) {
 //              if (isDebug()) System.out.print(".");
-              System.out.println("[KIE-DEPLOYER] WARNING: "+e.getMessage());
+              if (count>1)
+                System.out.println("[KIE-DEPLOYER] WARNING: "+e.getClass().getName()+":"+e.getMessage());
+              count=count+1;
               return false;
             }
         	}});
@@ -113,7 +118,7 @@ public class ProcessDeployer6Mojo extends AbstractMojo implements Configuration 
       	  String kBaseName=d.getkBaseName();
           String kSessionName=d.getkSessionName();
           client.actionKJar(gav, d.getStrategy(), kBaseName, kSessionName, "deploy");
-          System.out.print("[KIE-DEPLOYER]    checkingForDeployment:");
+          System.out.println("[KIE-DEPLOYER]    checking BPMS Server for deployment...");
           boolean success=Wait.For(getTimeoutInSeconds(),1,new ToHappen() {
             @Override public boolean hasHappened() {
               try{
@@ -121,17 +126,17 @@ public class ProcessDeployer6Mojo extends AbstractMojo implements Configuration 
               }catch(HttpException sink){}
               return false;
           }});
-          System.out.println();
+//          System.out.println();
           
           if (success){
-            if (isDebug()) System.out.println("[KIE-DEPLOYER]    Confirmed GAV is deployed on BPM Server ["+gav+"; strategy="+d.getStrategy()+"]");
+            System.out.println("[KIE-DEPLOYER]    Confirmed. GAV is deployed on BPM Server ["+gav+"; strategy="+d.getStrategy()+"]");
             resultStatus=0;
           }else{
-            if (isDebug()) System.err.println("[KIE-DEPLOYER]    After deployment GAV was NOT found on BPM Server! ["+gav+"; strategy="+d.getStrategy()+"]");
+            System.err.println("[KIE-DEPLOYER]    After deployment GAV was NOT found on BPM Server! ["+gav+"; strategy="+d.getStrategy()+"]");
             resultStatus=1;
           }
         }else{
-          if (isDebug()) System.out.println("[KIE-DEPLOYER]    Deployment already exists ["+gav+"; strategy="+d.getStrategy()+"]");
+          System.out.println("[KIE-DEPLOYER]    Deployment already exists ["+gav+"; strategy="+d.getStrategy()+"]");
           resultStatus=2;
         }
       }

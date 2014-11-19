@@ -9,10 +9,12 @@ public class Wait{
       try{
         Thread.sleep((intervalInSeconds*1000));
       }catch(InterruptedException ignor){}
-      System.out.println("[Wait] - waiting... ["+((end-System.currentTimeMillis())/1000)+"s]");
+      //System.out.println("[Wait] - waiting... ["+((end-System.currentTimeMillis())/1000)+"s]");
+//      System.out.print(".");
       timeout=System.currentTimeMillis()>end;
       if (timeout) System.err.println("timed out waiting.");
     }
+    System.out.println("");
     return !timeout;
   }
   public static boolean For(int timeoutInSeconds, ToHappen toHappen) {
