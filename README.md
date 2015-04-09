@@ -4,7 +4,7 @@ maven-kie-deployer-plugin
 Maven plugin to deploy kjars to a running instance ofJBoss BPM Suite 6 for use in a CI environment
 
 * Example usage
-'''
+```
 <plugin>
     <groupId>org.kie.maven.plugins</groupId>
     <artifactId>maven-kie-deployer-plugin</artifactId>
@@ -40,4 +40,4 @@ Maven plugin to deploy kjars to a running instance ofJBoss BPM Suite 6 for use i
             </configuration>
         </execution>
     </executions>
-'''
+```
