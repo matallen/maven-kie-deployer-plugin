@@ -124,7 +124,6 @@ public class ProcessDeployer6Mojo extends AbstractMojo implements Configuration 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     checkParameters();
-System.out.println("debug = "+isDebug());
     if (!isImmediate()) {
       if (isDebug()) getLog().debug("polling mode enabled");
       Runnable runnable=new Runnable() {
