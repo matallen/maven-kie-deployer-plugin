@@ -1,16 +1,17 @@
 package org.kie.deployer.model;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+//import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 public class GAV {
-  private String groupId;
-  private String artifactId;
-  private String version;
+  protected String groupId;
+  protected String artifactId;
+  protected String version;
   
   public String toString(){
-    return ReflectionToStringBuilder.toString(this);
+    return groupId+":"+artifactId+":"+version;
+//    return ReflectionToStringBuilder.toString(this);
   }
   
   @Override

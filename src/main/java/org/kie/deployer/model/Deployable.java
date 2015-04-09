@@ -1,12 +1,12 @@
 package org.kie.deployer.model;
 
 public class Deployable {
-    private String groupId;
-    private String artifactId;
-    private String version;
-    private String strategy;
-    private String kBaseName;
-    private String kSessionName;
+    protected String groupId;
+    protected String artifactId;
+    protected String version;
+    protected String strategy;
+    protected String kBaseName;
+    protected String kSessionName;
 
     public String getGroupId() {
         return groupId;
@@ -36,6 +36,7 @@ public class Deployable {
     
     @Override
     public String toString() {
+//      return groupId+":"+artifactId+":"+version+":"+strategy+":"+kBaseName+":"kSessionName;
       return "Deployable [groupId="+groupId+", artifactId="+artifactId+", version="+version+", strategy="+strategy+", kBaseName="+kBaseName+", kSessionName="
           +kSessionName+"]";
     }

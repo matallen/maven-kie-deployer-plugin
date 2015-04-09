@@ -1,6 +1,7 @@
 package org.kie.deployer;
 
 import org.kie.deployer.model.Deployable;
+import org.kie.deployer.model.Model;
 
 
 public interface Configuration {
@@ -11,4 +12,5 @@ public interface Configuration {
   public boolean isImmediate();
   public boolean isDebug();
   public Deployable[] getDeployables();
+  public Model[] getModels();
 }

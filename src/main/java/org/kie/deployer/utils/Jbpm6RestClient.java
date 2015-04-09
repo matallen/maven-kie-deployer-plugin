@@ -1,48 +1,64 @@
 package org.kie.deployer.utils;
 
-import static com.jayway.restassured.RestAssured.given;
+//import static com.jayway.restassured.RestAssured.given;
+//import com.jayway.restassured.response.Response;
 import static javax.xml.xpath.XPathConstants.NODE;
 import static javax.xml.xpath.XPathConstants.NUMBER;
 import static javax.xml.xpath.XPathConstants.STRING;
+
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.maven.plugin.logging.Log;
 import org.kie.deployer.HttpException;
 import org.kie.deployer.model.DeploymentUnit;
 import org.kie.deployer.model.GAV;
+import org.kie.deployer.model.Model;
+import org.kie.deployer.utils.Http.Response;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import com.jayway.restassured.response.Response;
 
 public class Jbpm6RestClient {
   private String serverUri;
   private String username;
   private String password;
   private boolean debug;
+  private Log log;
   private final Map<GAV, DeploymentUnit> deploymentsFound=new HashMap<GAV, DeploymentUnit>();
   
-  public Jbpm6RestClient(String serverUri, String username, String password, boolean debug){
-    this.serverUri=serverUri;
+  public Jbpm6RestClient(String serverUri, String username, String password, boolean debug, Log log){
+    this.log=log;
+    this.serverUri=serverUri.endsWith("/")?serverUri:serverUri+"/";
     this.username=username;
     this.password=password;
     this.debug=debug;
   }
   
-  public void actionKJar(GAV gav, String strategy, String kBaseName, String kSessionName, String action) throws HttpException{
-    String url=serverUri+"rest/deployment/"+gav.getGroupId()+":"+gav.getArtifactId()+":"+gav.getVersion()+(kBaseName!=null?":"+kBaseName:"")+(kSessionName!=null?":"+kSessionName:"")+"/"+action+"?strategy="+strategy;
-    if (debug) System.out.println("[KIE-DEPLOYER]    "+action+" request  -> POST "+url);
-    Response response=given().redirects().follow(true).auth().preemptive().basic(username,password).when().post(url);
+  public void deployKJar(GAV gav, String strategy, String kBaseName, String kSessionName) throws HttpException{
+    actionKJar(gav, strategy, kBaseName, kSessionName, "deploy");
+  }
+  public void undeployKJar(GAV gav, String strategy, String kBaseName, String kSessionName) throws HttpException{
+    actionKJar(gav, strategy, kBaseName, kSessionName, "undeploy");
+  }
+  
+  private void actionKJar(GAV gav, String strategy, String kBaseName, String kSessionName, String action) throws HttpException{
+    String uri="rest/deployment/"+gav.getGroupId()+":"+gav.getArtifactId()+":"+gav.getVersion()+(kBaseName!=null?":"+kBaseName:"")+(kSessionName!=null?":"+kSessionName:"")+"/"+action+"?strategy="+strategy;
+    if (debug) log.debug("[KJar] "+action+" request  -> POST "+uri);
+    
+    Response response=new Http(serverUri).username(username).password(password).post(uri, null);
     String responseString=response.asString();
-    if (debug) System.out.println("[KIE-DEPLOYER]    "+action+" response -> "+responseString);
+    if (debug) log.debug("[KJar] "+action+" response -> "+responseString);
     
     if (response.getStatusCode()!=202)
-      throw new HttpException("[KIE-DEPLOYER]    ERROR: Failed to POST to "+url+" - http status line = "+ response.getStatusLine() +"; response content:\n "+ responseString);
+      throw new HttpException("[KJar] ERROR: Failed to POST to "+uri+" - http status code = "+ response.getStatusCode() +"; response content:\n "+ responseString);
   }
   
   public boolean deploymentExists(GAV gav, String strategy) throws HttpException{
@@ -62,19 +78,16 @@ public class Jbpm6RestClient {
   }
   public List<DeploymentUnit> getDeployments() throws HttpException {
     try {
-      String url=serverUri+"rest/deployment";
+      String uri="rest/deployment";
+      if (debug) log.debug("[KJar] getDeployments -> GET "+uri);
       
-      if (debug)
-        System.out.println("[KIE-DEPLOYER]    getDeployments -> GET "+url);
-//      System.out.print(".");
+      Response response=new Http(serverUri).username(username).password(password).get(uri);
       
-      Response response=given().redirects().follow(true).auth().preemptive().basic(username,password).when().get(url);
       if (response.getStatusCode()!=200 && response.getStatusCode()!=202)
-        throw new HttpException("Failed to GET to "+url+" - http status line = "+ response.getStatusLine() +"; response content = "+ response.asString());
+        throw new HttpException("Failed to GET to "+uri+" - http status code = "+ response.getStatusCode() +"; response content = "+ response.asString());
 
       String responseString=response.asString();
-      if (debug)
-        System.out.println("[KIE-DEPLOYER]    getDeployments() response = "+responseString);
+      if (debug) log.debug("[KJar] getDeployments() response = "+responseString);
       Document doc=DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(responseString.getBytes()));
       XPath xpath=XPathFactory.newInstance().newXPath();
       List<DeploymentUnit> result=new ArrayList<DeploymentUnit>();
@@ -94,5 +107,11 @@ public class Jbpm6RestClient {
     }
   }
 
+  public void deployModel(File file, Model m) {
+    if (debug) log.debug("[Model] "+file.getName()+" :: Deploying...");
+    String resource="/maven2/"+m.getGroupId().replace('.', '/')+"/"+m.getArtifactId()+"/"+m.getArtifactId()+"-"+m.getVersion()+"."+m.getType();
+    Response response=new Http(serverUri).username(username).password(password).post(resource, file);
+    if (debug) log.debug("[Model] "+file.getName()+" :: Done (statusCode == "+response.getStatusCode()+")");
+  }
 
 }
